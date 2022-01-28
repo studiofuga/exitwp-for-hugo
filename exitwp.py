@@ -4,6 +4,7 @@ import codecs
 import os
 import re
 import sys
+import urllib.parse
 from datetime import datetime, timedelta, tzinfo
 from glob import glob
 from urllib.request import urlretrieve
@@ -343,13 +344,14 @@ def write_hugo(data, target_format):
 
         if download_images:
             for img in i['img_srcs']:
+                comp = urllib.parse.urlparse(img)
+                if comp[1] == '':
+                    comp._replace(netloc = data['header']['link'])
+                newurl = urllib.parse.urlunparse(comp)
                 try:
-                    urlretrieve(urljoin(data['header']['link'],
-                                        img.encode('utf-8')),
-                                get_attachment_path(img, i['uid']))
+                    urlretrieve(newurl,get_attachment_path(img, i['uid']))
                 except:
-                    print( '\n unable to download ' + urljoin(
-                        data['header']['link'], img.encode('utf-8')))
+                    print( f'\n unable to download {newurl}')
 
         if out is not None:
             def toyaml(data):
